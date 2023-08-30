@@ -1,4 +1,3 @@
-# VPC 리소스 생성
 resource "aws_vpc" "vpn_vpc" {
   cidr_block = var.vpc_cidr_block
 
@@ -7,12 +6,10 @@ resource "aws_vpc" "vpn_vpc" {
   }
 }
 
-# Internet Gateway 리소스 생성
 resource "aws_internet_gateway" "vpn_gw" {
   vpc_id = aws_vpc.vpn_vpc.id
 }
 
-# Route Table 리소스 생성
 resource "aws_route_table" "vpn_rt" {
   vpc_id = aws_vpc.vpn_vpc.id
 
@@ -22,7 +19,6 @@ resource "aws_route_table" "vpn_rt" {
   }
 }
 
-# Subnet 리소스 생성 (public)
 resource "aws_subnet" "vpn_public_subnet" {
   vpc_id            = aws_vpc.vpn_vpc.id
   cidr_block        = var.public_subnet_cidr_block
@@ -35,15 +31,13 @@ resource "aws_subnet" "vpn_public_subnet" {
   }
 }
 
-# Route Table Association 리소스 생성
 resource "aws_route_table_association" "vpn_public_subnet_association" {
   subnet_id      = aws_subnet.vpn_public_subnet.id
   route_table_id = aws_route_table.vpn_rt.id
 }
 
-# Security Group 리소스 생성 (vpn)
 resource "aws_security_group" "vpn_sg" {
-  name   = "${var.app_name}-sg"
+  name   = "${var.app_name}-vpn-sg"
   vpc_id = aws_vpc.vpn_vpc.id
 
   ingress {
@@ -77,13 +71,12 @@ resource "tls_private_key" "key_pair" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-# Create the Key Pair
+
 resource "aws_key_pair" "key_pair" {
   key_name   = "vpn-key"
   public_key = tls_private_key.key_pair.public_key_openssh
 }
 
-# 키파일 로컬에 저장
 resource "local_file" "ssh_key" {
   filename = "${aws_key_pair.key_pair.key_name}.pem"
   content  = tls_private_key.key_pair.private_key_pem
@@ -93,7 +86,6 @@ resource "local_file" "ssh_key" {
   }
 }
 
-# EC2 Instance 생성 (vpn_ec2 라고 명명)
 resource "aws_instance" "vpn_ec2" {
   ami                    = var.ec2_ami
   instance_type          = var.ec2_instance_type
@@ -132,12 +124,10 @@ resource "aws_instance" "vpn_ec2" {
   }
 }
 
-# Route53 레코드 리소스 생성을 위한 데이터 소스 정의
 data "aws_route53_zone" "selected_zone" {
   name = var.ec2_hosted_zone_name
 }
 
-# Route53 레코드 리소스 생성
 resource "aws_route53_record" "vpn_record" {
   zone_id = data.aws_route53_zone.selected_zone.zone_id
   name    = var.ec2_domain

@@ -35,3 +35,6 @@ terraform.rc
 
 # EC2 SSH Key
 *.pem
+
+# OpenVPN config
+*.ovpn

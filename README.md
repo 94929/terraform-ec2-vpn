@@ -2,18 +2,20 @@
 
 Provision personal VPN server with Terraform(AWS)
 
-## Components
+## Deploy
 
-1. EC2
-2. RDS
-3. Elasticache (redis)
+Prepare `terraform.tfvars` according to `variables.tf`, then:
 
-### 1. EC2
+```bash
+terraform init && terraform validate && terraform plan && terraform apply
+```
+
+## Create
 
 Once EC2 is created, ssh into the vpn server by:
 
 ```bash
-ssh -i vpn-server-key-pair.pem ubuntu@vpn.jinsungha.com
+ssh -i vpn-key.pem ubuntu@vpn.jinsungha.com
 ```
 
 And run the following commands to spin up the ovpn server and create client:
@@ -36,19 +38,3 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient jha 
 ```
 
 Then register and run the `.ovpn` file on a local machine to connect to the VPN.
-
-### 2. RDS
-
-Once created, look for rds_endpoint and try connecting to it.
-
-### 3. Elasticache (redis)
-
-Once created, look for redis_address and redis_port then try connecting to it.
-
-## Deployment
-
-Prepare `terraform.tfvars` then:
-
-```bash
-terraform init && terraform validate && terraform plan && terraform apply
-```
